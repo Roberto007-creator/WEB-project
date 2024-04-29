@@ -5,7 +5,7 @@ from data import db_session
 from data.users import User
 from data.news import News
 from forms.user import RegisterForm, LoginForm
-from forms.news import NewsForm
+from forms.news import NewsForm, CATEGORIES
 
 
 app = Flask(__name__)
@@ -92,6 +92,7 @@ def add_news():
         news = News()
         news.title = form.title.data
         news.content = form.content.data
+        news.category = CATEGORIES[int(form.category.data)][1]
         news.is_private = form.is_private.data
         current_user.news.append(news)
         db_sess.merge(current_user)
@@ -111,6 +112,7 @@ def edit_news(id):
         if news:
             form.title.data = news.title
             form.content.data = news.content
+            form.category.data = list(filter(lambda x: x[1] == news.category, CATEGORIES))[0][0]
             form.is_private.data = news.is_private
         else:
             abort(404)
@@ -120,15 +122,13 @@ def edit_news(id):
         if news:
             news.title = form.title.data
             news.content = form.content.data
+            news.category = CATEGORIES[int(form.category.data)][1]
             news.is_private = form.is_private.data
             db_sess.commit()
             return redirect('/')
         else:
             abort(404)
-    return render_template('news.html',
-                           title='Редактирование новости',
-                           form=form
-                           )
+    return render_template('news.html', title='Редактирование новости', form=form)
 
 
 @app.route('/news_delete/<int:id>', methods=['GET', 'POST'])
